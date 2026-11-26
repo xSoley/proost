@@ -56,7 +56,7 @@ export function TastingForm() {
   const navigate = useNavigate();
   const toast = useToast();
   const { session } = useAuth();
-  const { mine, groups, save, loaded } = useStore();
+  const { mine, groups, groupsLoaded, save, loaded } = useStore();
   const uid = session!.user.id;
   const existing = id ? mine.find(t => t.id === id && t.user_id === uid) || null : null;
 
@@ -80,6 +80,10 @@ export function TastingForm() {
   useEffect(() => {
     if (existing && loadedId.current !== existing.id) { loadedId.current = existing.id; setF(fromTasting(existing)); }
   }, [existing]);
+  // Fiche rattachée à un groupe que j'ai quitté : elle repasse en Perso
+  useEffect(() => {
+    if (groupsLoaded && f.group && !groups.some(g => g.id === f.group)) setF(s => ({ ...s, group: "" }));
+  }, [groupsLoaded, groups, f.group]);
   // Groupe en cours par défaut, une fois les groupes chargés
   useEffect(() => {
     if (touchedGroup.current) return;

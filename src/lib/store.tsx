@@ -12,6 +12,7 @@ type Store = {
   /** Mes fiches (serveur + en attente d'envoi), de la plus récente à la plus ancienne */
   mine: Tasting[];
   groups: Group[];
+  groupsLoaded: boolean;
   pendingCount: number;
   save: (row: Tasting, photo: { action: PhotoAction; photo?: Blob; thumb?: Blob }) => Promise<void>;
   remove: (t: Tasting) => Promise<void>;
@@ -31,6 +32,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [loaded, setLoaded] = useState(() => readCache(uid).length > 0);
   const [pending, setPending] = useState<OutboxEntry[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
+  const [groupsLoaded, setGroupsLoaded] = useState(false);
   const urls = useRef(new Map<string, { at: number; photo?: string; thumb?: string }>());
 
   const setServerRows = useCallback((fn: (r: Tasting[]) => Tasting[]) => {
@@ -65,8 +67,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [uid, setServerRows]);
 
   const reloadGroups = useCallback(async () => {
-    const { data } = await supabase.from("groups").select("*").order("start_date", { ascending: false, nullsFirst: false });
-    if (data) setGroups(data as Group[]);
+    const { data } = await supabase.from("groups").select("*, group_members(count)").order("start_date", { ascending: false, nullsFirst: false });
+    if (data) { setGroups(data as Group[]); setGroupsLoaded(true); }
   }, []);
 
   useEffect(() => {
@@ -131,8 +133,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [uid, refreshPending, runFlush]);
 
   const pendingCount = pending.length;
-  const value = useMemo(() => ({ loaded, mine, groups, pendingCount, save, remove, reloadGroups }),
-    [loaded, mine, groups, pendingCount, save, remove, reloadGroups]);
+  const value = useMemo(() => ({ loaded, mine, groups, groupsLoaded, pendingCount, save, remove, reloadGroups }),
+    [loaded, mine, groups, groupsLoaded, pendingCount, save, remove, reloadGroups]);
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>;
 }
 

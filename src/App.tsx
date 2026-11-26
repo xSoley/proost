@@ -6,13 +6,16 @@ import { Layout } from "./components/Layout";
 import { AuthPage } from "./pages/AuthPage";
 import { ResetPassword } from "./pages/ResetPassword";
 import { Profile } from "./pages/Profile";
-import { Placeholder } from "./pages/Placeholder";
 import { supabaseConfigured } from "./lib/supabase";
 import { StoreProvider } from "./lib/store";
 import { Cave } from "./pages/Cave";
 import { BeerPage } from "./pages/BeerPage";
 import { Stats } from "./pages/Stats";
 import { TastingForm } from "./pages/TastingForm";
+import { Groups } from "./pages/Groups";
+import { GroupForm } from "./pages/GroupForm";
+import { GroupPage } from "./pages/GroupPage";
+import { Join } from "./pages/Join";
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { session, loading } = useAuth();
@@ -64,12 +67,16 @@ export default function App() {
             <Route path="/signup" element={<GuestOnly><AuthPage mode="signup" /></GuestOnly>} />
             <Route path="/forgot" element={<GuestOnly><AuthPage mode="forgot" /></GuestOnly>} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/join/:code" element={<Join />} />
             <Route element={<RequireAuth><StoreProvider><Outlet /></StoreProvider></RequireAuth>}>
               <Route element={<Layout />}>
                 <Route index element={<Cave />} />
                 <Route path="beer/:key" element={<BeerPage />} />
                 <Route path="stats" element={<Stats />} />
-                <Route path="groups" element={<Placeholder title="Groupes" text="Les groupes entre amis arrivent à l’étape 3." />} />
+                <Route path="groups" element={<Groups />} />
+                <Route path="groups/new" element={<GroupForm />} />
+                <Route path="groups/:id" element={<GroupPage />} />
+                <Route path="groups/:id/edit" element={<GroupForm />} />
                 <Route path="profile" element={<Profile />} />
               </Route>
               <Route path="new" element={<TastingForm />} />

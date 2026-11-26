@@ -70,3 +70,48 @@ export function topCount(arr: string[]): [string, number] | undefined {
 export const litersOf = (T: Tasting[]) => T.reduce((a, t) => a + num(t.volume_cl), 0) / 100;
 export const spentOf = (T: Tasting[]) => T.reduce((a, t) => a + num(t.price), 0);
 export const strongestOf = (T: Tasting[]) => T.filter(t => num(t.abv) > 0).sort((a, b) => num(b.abv) - num(a.abv))[0];
+
+export type Person = { uid: string; name: string; list: Tasting[]; n: number; avg: number; fav: Tasting; spent: number };
+
+/** Statistiques par dégustateur (écran Équipe du prototype) */
+export function peopleOf(T: Tasting[], names: Record<string, string> = {}): Person[] {
+  const m = new Map<string, Tasting[]>();
+  for (const t of T) { if (!m.has(t.user_id)) m.set(t.user_id, []); m.get(t.user_id)!.push(t); }
+  return [...m.entries()].map(([uid, list]) => ({
+    uid, list, n: list.length,
+    name: names[uid] || list.find(t => t.profiles?.display_name)?.profiles?.display_name || "Anonyme",
+    avg: list.reduce((a, t) => a + t.score, 0) / list.length,
+    fav: list.slice().sort((a, b) => b.score - a.score)[0],
+    spent: list.reduce((a, t) => a + num(t.price), 0)
+  }));
+}
+
+export type Award = { ic: string; title: string; text: string; t?: Tasting };
+
+/** Palmarès du groupe (prototype + meilleur bar et meilleure affaire pour le récap) */
+export function awardsOf(cat: CategoryConfig, T: Tasting[], P: Person[], extended = false): Award[] {
+  const fmt0 = (n: number) => Math.round(n).toLocaleString("fr-FR");
+  const fmt1 = (n: number) => n.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const awards: Award[] = [];
+  if (P.length > 1) {
+    const big = P.slice().sort((a, b) => b.n - a.n)[0];
+    const kind = P.slice().sort((a, b) => b.avg - a.avg)[0];
+    const harsh = P.slice().sort((a, b) => a.avg - b.avg)[0];
+    awards.push({ ic: "🍺", title: "Le plus assoiffé", text: `${big.name} avec ${big.n} bières` });
+    awards.push({ ic: "😇", title: "Le plus généreux", text: `${kind.name}, ${fmt0(kind.avg)}/100 en moyenne` });
+    awards.push({ ic: "🧐", title: "Le juge le plus sévère", text: `${harsh.name}, ${fmt0(harsh.avg)}/100 en moyenne` });
+  }
+  const topStyle = topCount(T.map(t => t.style).filter(Boolean) as string[]);
+  const topAroma = topCount(T.flatMap(t => t.attributes?.aromas || []));
+  const strongest = strongestOf(T);
+  if (topStyle) awards.push({ ic: "🏷️", title: "Style le plus goûté", text: `${topStyle[0]} (${topStyle[1]} fois)` });
+  if (topAroma) awards.push({ ic: "👃", title: "Arôme le plus cité", text: `${topAroma[0]} (${topAroma[1]} fois)` });
+  if (strongest) awards.push({ ic: "🔥", title: "La plus costaude", text: `${strongest.item_name}, ${fmt1(num(strongest.abv))} %`, t: strongest });
+  if (extended) {
+    const bar = barsOf(T)[0];
+    if (bar) awards.push({ ic: "📍", title: "Le meilleur bar", text: `${bar.name}${bar.amb ? `, ${fmt1(bar.amb)}★` : ""}` });
+    const deal = beersOf(cat, T).filter(b => b.value != null).sort((a, b) => b.value! - a.value!)[0];
+    if (deal) awards.push({ ic: "💶", title: "La meilleure affaire", text: `${deal.name}, ${fmt1(deal.value!)} pts par €` });
+  }
+  return awards;
+}

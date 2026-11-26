@@ -51,3 +51,8 @@ npm run dev            # http://localhost:5173 (et l'IP locale pour tester sur t
 node --env-file=.env.local scripts/test-rls.mjs
 ```
 Crée deux comptes jetables (Alice et Bob), vérifie qui voit, modifie et lit quoi (fiches, groupes, photos), puis les supprime.
+
+```bash
+node --env-file=.env.local scripts/test-groups.mjs
+```
+Invitation, temps réel, régénération du code, retrait d'un membre, départ, suppression d'un groupe (trois comptes jetables).

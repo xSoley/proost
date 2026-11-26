@@ -234,3 +234,23 @@ a.btn{text-decoration:none}
 .trend-cap{display:flex;align-items:baseline;gap:4px}
 .trend-cap b{font-size:22px;font-weight:800;letter-spacing:-.02em}
 .trend-cap span{color:var(--muted);font-size:13.5px}
+
+/* Groupes */
+.group-card{display:block;text-decoration:none;color:inherit}
+.group-cover{display:block;width:100%;aspect-ratio:3/1;object-fit:cover;background:var(--surface2)}
+.group-emoji{font-size:30px;width:44px;height:44px;display:grid;place-items:center;background:var(--surface2);border-radius:14px;flex:none}
+.group-emoji.big{font-size:40px;width:64px;height:64px;border-radius:18px;background:var(--surface);border:1px solid var(--line)}
+.group-hero{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:20px;margin-bottom:16px;background:var(--surface2)}
+.group-head{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.group-head .body{min-width:0}
+.group-head h2{font-size:30px;line-height:1.05;overflow-wrap:anywhere}
+.group-actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.chip.emoji{font-size:20px;padding:4px 10px}
+.emoji-in{width:64px;padding:6px 10px;font-size:18px;text-align:center;border-radius:999px}
+.invite-link{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;overflow-wrap:anywhere;user-select:all}
+.members{display:flex;flex-direction:column}
+.member{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-weight:600}
+.member:last-child{border-bottom:0}
+.member .body{flex:1;min-width:0}
+.member small{color:var(--muted);font-weight:500}
+.modal-in{max-height:calc(100dvh - 32px);overflow-y:auto}

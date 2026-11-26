@@ -47,4 +47,5 @@ export type Group = {
   closed_at: string | null;
   created_by: string;
   created_at: string;
+  group_members?: { count: number }[];
 };
