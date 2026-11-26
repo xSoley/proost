@@ -11,7 +11,8 @@ import { colorOf, p33Of } from "../lib/aggregate";
 import { compressPhoto } from "../lib/image";
 import type { PhotoAction } from "../lib/outbox";
 import type { Tasting } from "../lib/types";
-import { fmt, isCurrentGroup, norm, num, toLocalInput, uuid } from "../lib/utils";
+import { fmt, norm, num, toLocalInput, uuid } from "../lib/utils";
+import { defaultGroupId, isOpen, rememberGroup } from "../lib/groups";
 
 type FormState = {
   name: string; producer: string; abv: string; style: string; color: string;
@@ -60,12 +61,17 @@ export function TastingForm() {
   const uid = session!.user.id;
   const existing = id ? mine.find(t => t.id === id && t.user_id === uid) || null : null;
 
+  // Groupes proposés : les groupes ouverts, plus celui de la fiche modifiée même s'il est clôturé
+  const choosable = groups.filter(g => isOpen(g) || g.id === existing?.group_id);
+  const initialGroup = () => {
+    const g = params.get("group");
+    return g && groups.some(x => x.id === g && isOpen(x)) ? g : defaultGroupId(groups, uid);
+  };
   const [f, setF] = useState<FormState>(() => {
     if (existing) return fromTasting(existing);
     const b = blank();
     b.name = params.get("name") || "";
-    const g = params.get("group");
-    b.group = g ?? (groups.find(isCurrentGroup)?.id || "");
+    b.group = initialGroup();
     return b;
   });
   const [ph, setPh] = useState<PhotoState>({ action: "keep" });
@@ -73,23 +79,22 @@ export function TastingForm() {
   const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
-  const touchedGroup = useRef(!!existing || params.has("group"));
+  const touchedGroup = useRef(!!existing);
 
   // La fiche à modifier peut arriver après le premier rendu (chargement)
   const loadedId = useRef<string | null>(existing?.id || null);
   useEffect(() => {
     if (existing && loadedId.current !== existing.id) { loadedId.current = existing.id; setF(fromTasting(existing)); }
   }, [existing]);
-  // Fiche rattachée à un groupe que j'ai quitté : elle repasse en Perso
+  // Groupe quitté, ou clôturé entre-temps : la fiche repasse en Perso
   useEffect(() => {
-    if (groupsLoaded && f.group && !groups.some(g => g.id === f.group)) setF(s => ({ ...s, group: "" }));
-  }, [groupsLoaded, groups, f.group]);
-  // Groupe en cours par défaut, une fois les groupes chargés
+    if (groupsLoaded && f.group && !choosable.some(g => g.id === f.group)) setF(s => ({ ...s, group: "" }));
+  }, [groupsLoaded, choosable, f.group]);
+  // Groupe par défaut, une fois les groupes chargés
   useEffect(() => {
-    if (touchedGroup.current) return;
-    const g = groups.find(isCurrentGroup);
-    if (g) setF(s => ({ ...s, group: g.id }));
-  }, [groups]);
+    if (touchedGroup.current || !groupsLoaded) return;
+    setF(s => ({ ...s, group: initialGroup() }));
+  }, [groups, groupsLoaded]);
 
   useEffect(() => {
     const r = requestAnimationFrame(() => setOpen(true));
@@ -161,6 +166,7 @@ export function TastingForm() {
     };
     try {
       await save(row, { action: ph.action, photo: ph.photo, thumb: ph.thumb });
+      if (!existing) rememberGroup(uid, f.group);
       toast(`${name} : ${score}/100, proost !`);
       setOpen(false);
       window.setTimeout(() => {
@@ -231,8 +237,8 @@ export function TastingForm() {
           <label className="f">Groupe</label>
           <div className="chips" role="group">
             <button type="button" className="chip" aria-pressed={!f.group} onClick={() => { touchedGroup.current = true; set("group", ""); }}>Perso</button>
-            {groups.map(g => <button key={g.id} type="button" className="chip" aria-pressed={f.group === g.id}
-              onClick={() => { touchedGroup.current = true; set("group", g.id); }}>{g.emoji} {g.name}</button>)}
+            {choosable.map(g => <button key={g.id} type="button" className="chip" aria-pressed={f.group === g.id}
+              onClick={() => { touchedGroup.current = true; set("group", g.id); }}>{g.emoji} {g.name}{g.closed_at ? " 🔒" : ""}</button>)}
           </div>
           {!f.group && <p className="hint" style={{ margin: "8px 0 0" }}>Fiche perso : visible par toi seul.</p>}
         </div>

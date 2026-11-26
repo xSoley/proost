@@ -1,12 +1,12 @@
 import { Link } from "react-router-dom";
 import { useStore } from "../lib/store";
-import { groupStatus, groupSubtitle, recapReady, type GroupStatus } from "../lib/groups";
+import { groupStatus, groupSubtitle, type GroupStatus } from "../lib/groups";
 import { usePhotoUrl } from "../lib/photos";
 import type { Group } from "../lib/types";
 import { EmptyState } from "../components/EmptyState";
 import { Loading } from "../components/Loading";
 
-const SECTIONS: [GroupStatus, string][] = [["current", "En cours"], ["upcoming", "À venir"], ["past", "Passés"]];
+const SECTIONS: [GroupStatus, string][] = [["current", "En cours"], ["upcoming", "À venir"], ["past", "Passés et clôturés"]];
 
 export function GroupCard({ g }: { g: Group }) {
   const cover = usePhotoUrl(g.cover_path);
@@ -18,8 +18,8 @@ export function GroupCard({ g }: { g: Group }) {
         <span className="group-emoji" aria-hidden="true">{g.emoji}</span>
         <span className="body">
           <span className="title">{g.name}</span>
-          <span className="meta" style={{ display: "block" }}>{groupSubtitle(g) || "Sans dates"}</span>
-          {recapReady(g) && <span className="meta" style={{ display: "block", color: "var(--hop)", fontWeight: 600 }}>🏆 Récap disponible</span>}
+          <span className="meta" style={{ display: "block" }}>{groupSubtitle(g)}</span>
+          {g.closed_at && <span className="meta" style={{ display: "block" }}>🔒 Clôturé</span>}
         </span>
         {n != null && <span className="score"><b>{n}</b><small>membre{n > 1 ? "s" : ""}</small></span>}
       </div>

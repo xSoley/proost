@@ -61,6 +61,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       });
     }
     if (res.rejected.length) toast("Une fiche a été refusée par le serveur.");
+    else if (res.done.some(d => d.entry.row?.group_id && d.row && !d.row.group_id))
+      toast("Ce groupe n’accepte plus de fiches : la tienne est gardée en Perso.");
     await refreshPending();
   }, [uid, setServerRows, refreshPending, toast]);
 

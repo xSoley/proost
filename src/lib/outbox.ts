@@ -81,7 +81,11 @@ async function send(e: OutboxEntry): Promise<Tasting | null> {
     await bucket.remove([path, thumbPath(path)]);
     row.photo_path = null;
   }
-  const { data, error } = await supabase.from("tastings").upsert(row).select().single();
+  let { data, error } = await supabase.from("tastings").upsert(row).select().single();
+  // Groupe clôturé ou quitté pendant que la fiche attendait : on la garde en Perso plutôt que de la perdre
+  if (error && row.group_id && (error.message?.includes("group_closed") || error.code === "42501")) {
+    ({ data, error } = await supabase.from("tastings").upsert({ ...row, group_id: null }).select().single());
+  }
   if (error) throw error;
   return data as Tasting;
 }

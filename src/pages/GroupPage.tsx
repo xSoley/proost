@@ -3,9 +3,10 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../auth/AuthProvider";
 import { useStore } from "../lib/store";
-import { groupSubtitle, inviteUrl, recapReady, useGroupTastings, type Member } from "../lib/groups";
+import { groupSubtitle, inviteUrl, useGroupTastings, type Member } from "../lib/groups";
 import { usePhotoUrl } from "../lib/photos";
 import { useToast } from "../components/Toast";
+import { fmtDate } from "../lib/utils";
 import { Avatar } from "../components/Avatar";
 import { Bars, Feed, Ranking, Team } from "../components/GroupViews";
 import { Loading } from "../components/Loading";
@@ -65,12 +66,11 @@ export function GroupPage() {
     loadMembers(); reloadGroups();
   }
   async function setClosed(closed: boolean) {
-    if (closed && !confirm("Clôturer le groupe ? Le récap devient disponible pour tout le monde. Tu pourras le rouvrir.")) return;
+    if (closed && !confirm("Clôturer le groupe ? Plus personne ne pourra y ajouter de fiche. Le récap reste accessible, et tu pourras rouvrir le groupe.")) return;
     const { error } = await supabase.from("groups").update({ closed_at: closed ? new Date().toISOString() : null }).eq("id", id);
     if (error) { toast("Impossible de modifier le groupe."); return; }
     await reloadGroups();
-    if (closed) navigate(`/groups/${id}/recap`);
-    else toast("Groupe rouvert");
+    toast(closed ? "Groupe clôturé" : "Groupe rouvert");
   }
   async function leave() {
     if (!confirm(`Quitter « ${g!.name} » ? Tu ne verras plus les fiches du groupe. Les tiennes restent visibles par le groupe.`)) return;
@@ -89,24 +89,26 @@ export function GroupPage() {
         <span className="group-emoji big" aria-hidden="true">{g.emoji}</span>
         <div className="body">
           <h2>{g.name}</h2>
-          <p className="sub" style={{ margin: 0 }}>{groupSubtitle(g) || "Sans dates"}</p>
+          <p className="sub" style={{ margin: 0 }}>{groupSubtitle(g)}</p>
         </div>
       </div>
       <div className="group-actions">
         <button className="ghost" onClick={() => setPanel(true)}>👥 {members.length || ""} membre{members.length > 1 ? "s" : ""} · Inviter</button>
         {owner && <Link className="ghost" to={`/groups/${id}/edit`}>Modifier</Link>}
+        {owner && !g.closed_at && <button className="ghost" onClick={() => setClosed(true)}>🏁 Clôturer</button>}
       </div>
 
-      {recapReady(g) ? (
-        <Link className="card recap-teaser" to={`/groups/${id}/recap`}>
-          <span className="ic">🏆</span>
-          <span className="body"><b>Le récap est prêt</b><span>Podium, palmarès, coups de cœur et toutes les photos</span></span>
-          <span aria-hidden="true">→</span>
-        </Link>
-      ) : owner && (
-        <button className="ghost" style={{ width: "100%", padding: 11, marginBottom: 18 }} onClick={() => setClosed(true)}>🏁 Clôturer le week-end et voir le récap</button>
+      {g.closed_at && (
+        <div className="banner">
+          🔒 Groupe clôturé le {fmtDate(g.closed_at, { day: "numeric", month: "long", year: "numeric" })} : on ne peut plus y ajouter de fiche.
+          {owner && <> <button className="linkbtn" onClick={() => setClosed(false)}>Rouvrir le groupe</button></>}
+        </div>
       )}
-      {owner && g.closed_at && <button className="linkbtn" style={{ marginBottom: 18 }} onClick={() => setClosed(false)}>Rouvrir le groupe</button>}
+      <Link className="card recap-teaser" to={`/groups/${id}/recap`}>
+        <span className="ic">🏆</span>
+        <span className="body"><b>Voir le récap</b><span>{g.closed_at ? "Podium, palmarès, coups de cœur et toutes les photos" : "Mis à jour à chaque nouvelle bière : podium, palmarès, photos"}</span></span>
+        <span aria-hidden="true">→</span>
+      </Link>
 
       <div className="seg" role="tablist" aria-label="Vues du groupe">{TABS.map(([k, l]) =>
         <button key={k} role="tab" aria-pressed={tab === k} aria-selected={tab === k} onClick={() => choose(k)}>{l}</button>)}</div>

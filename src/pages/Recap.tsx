@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { beer as cat } from "../categories/beer";
 import { useAuth } from "../auth/AuthProvider";
 import { useStore } from "../lib/store";
-import { groupSubtitle, recapReady, useGroupTastings } from "../lib/groups";
+import { groupSubtitle, useGroupTastings } from "../lib/groups";
 import { awardsOf, beersOf, colorOf, litersOf, peopleOf, spentOf } from "../lib/aggregate";
 import { usePhotoUrl } from "../lib/photos";
 import type { Tasting } from "../lib/types";
@@ -67,11 +67,6 @@ export function Recap() {
 
   if (!groupsLoaded || tastings === null) return <Loading text="Ouverture du récap…" />;
   if (!g) return <div className="empty"><b>Groupe introuvable</b><p>Tu n’en fais pas (ou plus) partie.</p></div>;
-  if (!recapReady(g)) return (
-    <div className="empty"><Glass score={50} color="#E6AE35" h={90} /><b>Le récap n’est pas encore prêt</b>
-      <p>Il sera disponible après le {g.end_date ? fmtDate(g.end_date + "T12:00:00", { day: "numeric", month: "long" }) : "dernier jour"}, ou dès que le créateur clôture le groupe.</p>
-      <Link className="btn" to={`/groups/${id}`}>Retour au groupe</Link></div>
-  );
 
   const avg = T.length ? T.reduce((a, t) => a + t.score, 0) / T.length : 0;
   const totalPhotos = data.days.reduce((a, d) => a + d[1].length, 0);
@@ -86,6 +81,7 @@ export function Recap() {
         <h1>{g.name}</h1>
         <p>{groupSubtitle(g)}</p>
       </Cover>
+      {!g.closed_at && T.length > 0 && <p className="sub recap-live">● En direct : le récap se met à jour à chaque nouvelle bière.</p>}
 
       {!T.length ? (
         <div className="empty"><b>Aucune fiche dans ce groupe</b><p>Le récap se remplit avec les dégustations de la bande.</p></div>
@@ -154,7 +150,7 @@ export function Recap() {
               </div>
             ))}
         </section>
-        <p className="sub" style={{ textAlign: "center", marginTop: 24 }}>Proost, et à la prochaine ! 🍻</p>
+        {g.closed_at && <p className="sub" style={{ textAlign: "center", marginTop: 24 }}>Proost, et à la prochaine ! 🍻</p>}
       </>}
 
       {/* Fiche ouverte depuis la mosaïque ou un coup de cœur */}

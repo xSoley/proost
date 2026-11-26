@@ -62,7 +62,18 @@ try {
   await A.c.from("groups").update({ cover_path: coverPath }).eq("id", gid);
   check("Bob voit la couverture du groupe", !(await B.c.storage.from("photos").createSignedUrl(coverPath, 60)).error);
   check("Bob ne peut pas clôturer le groupe", ((await B.c.from("groups").update({ closed_at: new Date().toISOString() }).eq("id", gid).select()).data || []).length === 0);
+  // Bob a une fiche dans le groupe et une fiche perso avant la clôture
+  const bIn = row(B.id, gid), bPerso = row(B.id, null);
+  await B.c.from("tastings").insert([bIn, bPerso]);
   check("Alice clôture le groupe", ((await A.c.from("groups").update({ closed_at: new Date().toISOString() }).eq("id", gid).select()).data || []).length === 1);
+  const refused = await B.c.from("tastings").insert(row(B.id, gid));
+  check("Groupe clôturé : Bob ne peut plus y ajouter de fiche", refused.error?.message === "group_closed");
+  check("Groupe clôturé : Bob peut encore corriger sa fiche (update)", ((await B.c.from("tastings").update({ score: 71 }).eq("id", bIn.id).select()).data || []).length === 1);
+  check("Groupe clôturé : Bob peut encore corriger sa fiche (upsert, comme l'appli)", !(await B.c.from("tastings").upsert({ ...bIn, score: 72 })).error);
+  check("Groupe clôturé : Bob ne peut pas y déplacer sa fiche perso", (await B.c.from("tastings").update({ group_id: gid }).eq("id", bPerso.id)).error?.message === "group_closed");
+  check("Groupe clôturé : Bob voit toujours les fiches (récap)", ((await B.c.from("tastings").select("id").eq("group_id", gid)).data || []).length >= 2);
+  await A.c.from("groups").update({ closed_at: null }).eq("id", gid);
+  check("Groupe rouvert : Bob peut de nouveau noter", !(await B.c.from("tastings").insert(row(B.id, gid))).error);
 
   // Retrait et départ
   check("Bob ne peut pas retirer Chloé", ((await B.c.from("group_members").delete().eq("group_id", gid).eq("user_id", C.id).select()).data || []).length === 0);

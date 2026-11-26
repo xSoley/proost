@@ -114,7 +114,7 @@ export function GroupForm() {
           <div><label className="f" htmlFor="gStart">Du</label><input className="in" id="gStart" type="date" value={start} onChange={e => { setStart(e.target.value); if (!end || end < e.target.value) setEnd(e.target.value); }} /></div>
           <div><label className="f" htmlFor="gEnd">Au</label><input className="in" id="gEnd" type="date" min={start || undefined} value={end} onChange={e => setEnd(e.target.value)} /></div>
         </div>
-        <p className="hint" style={{ margin: "8px 0 0" }}>Facultatif. Pendant ces dates, tes fiches iront dans ce groupe par défaut.</p>
+        <p className="hint" style={{ margin: "8px 0 0" }}>Facultatif. Pendant ces dates, tes fiches iront dans ce groupe par défaut. Sans dates, le groupe reste ouvert jusqu’à ce que tu le clôtures.</p>
       </div>
 
       <div className="sec">

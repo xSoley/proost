@@ -3,7 +3,7 @@ import { supabase } from "./supabase";
 import { useStore } from "./store";
 import { useAuth } from "../auth/AuthProvider";
 import type { Group, Tasting } from "./types";
-import { todayISO } from "./utils";
+import { fmtDate, isCurrentGroup, todayISO } from "./utils";
 
 /** « du 18 au 20 décembre », « le 3 mai 2026 »… */
 export function fmtRange(start: string | null, end: string | null): string {
@@ -18,8 +18,10 @@ export function fmtRange(start: string | null, end: string | null): string {
   return `du ${a.toLocaleDateString("fr-FR", full)} au ${b.toLocaleDateString("fr-FR", full)}${b.getFullYear() !== new Date().getFullYear() ? ` ${b.getFullYear()}` : ""}`;
 }
 
-export const groupSubtitle = (g: Pick<Group, "city" | "start_date" | "end_date">) =>
-  [g.city, fmtRange(g.start_date, g.end_date)].filter(Boolean).join(", ");
+/** « Bruxelles, du 18 au 20 décembre » ; sans dates : « depuis le 26 novembre 2026 » */
+export const groupSubtitle = (g: Pick<Group, "city" | "start_date" | "end_date"> & { created_at?: string }) =>
+  [g.city, g.start_date ? fmtRange(g.start_date, g.end_date) : g.created_at ? `depuis le ${fmtDate(g.created_at, { day: "numeric", month: "long", year: "numeric" })}` : ""]
+    .filter(Boolean).join(", ");
 
 export type GroupStatus = "current" | "upcoming" | "past";
 export function groupStatus(g: Group): GroupStatus {
@@ -29,8 +31,22 @@ export function groupStatus(g: Group): GroupStatus {
   return "current";
 }
 
-/** Le récap est disponible une fois la date de fin passée, ou après clôture par le créateur */
-export const recapReady = (g: Group) => !!g.closed_at || (!!g.end_date && g.end_date < todayISO());
+/** Un groupe clôturé n'accepte plus de nouvelles fiches (le récap, lui, est toujours accessible) */
+export const isOpen = (g: Pick<Group, "closed_at">) => !g.closed_at;
+
+// Groupe proposé par défaut dans une nouvelle fiche
+const lastKey = (uid: string) => `proost-last-group-${uid}`;
+export function rememberGroup(uid: string, gid: string) {
+  try { localStorage.setItem(lastKey(uid), gid); } catch { /* */ }
+}
+/** Un week-end en cours (dates qui encadrent aujourd'hui), sinon le dernier groupe utilisé s'il est ouvert, sinon Perso ("") */
+export function defaultGroupId(groups: Group[], uid: string): string {
+  const current = groups.find(isCurrentGroup);
+  if (current) return current.id;
+  let last: string | null = null;
+  try { last = localStorage.getItem(lastKey(uid)); } catch { /* */ }
+  return last && groups.some(g => g.id === last && isOpen(g)) ? last : "";
+}
 
 export const inviteUrl = (code: string) => `${window.location.origin}/join/${code}`;
 

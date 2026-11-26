@@ -298,3 +298,4 @@ h3.day{font-size:17px;margin:18px 0 8px}
 .loading-glass .rise{animation:fill 1.6s cubic-bezier(.4,0,.2,1) infinite}
 @keyframes fill{0%{transform:translateY(var(--rise))}60%,100%{transform:none}}
 @media (prefers-reduced-motion:reduce){.loading-glass .rise{animation:none}}
+.recap-live{margin:-16px 0 24px;font-size:14px}
