@@ -115,6 +115,7 @@ export function flush(uid: string): Promise<FlushResult> {
 
 /** Efface les données locales d'un utilisateur (déconnexion, suppression du compte) */
 export async function clearLocal(uid: string) {
-  try { localStorage.removeItem(`proost-cache-${uid}`); } catch { /* */ }
+  try { for (const k of ["cache", "groups", "profile"]) localStorage.removeItem(`proost-${k}-${uid}`); localStorage.removeItem("proost-photo-urls"); } catch { /* */ }
+  try { await caches.delete("proost-photos"); } catch { /* */ }
   try { for (const e of await listOutbox(uid)) await delEntry(e.id); } catch { /* */ }
 }

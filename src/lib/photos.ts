@@ -4,6 +4,15 @@ import { supabase } from "./supabase";
 
 const TTL = 3600; // secondes
 const cache = new Map<string, { url: string; exp: number }>();
+// Dernière URL connue par photo : hors ligne, le service worker la sert depuis son cache même expirée
+const KNOWN = "proost-photo-urls";
+const known: Record<string, string> = (() => { try { return JSON.parse(localStorage.getItem(KNOWN) || "{}"); } catch { return {}; } })();
+function remember(path: string, url: string) {
+  known[path] = url;
+  const keys = Object.keys(known);
+  if (keys.length > 600) for (const k of keys.slice(0, keys.length - 500)) delete known[k];
+  try { localStorage.setItem(KNOWN, JSON.stringify(known)); } catch { /* */ }
+}
 const waiting = new Map<string, ((url: string | null) => void)[]>();
 let timer: number | undefined;
 
@@ -18,10 +27,11 @@ async function run() {
   waiting.clear();
   const paths = [...batch.keys()];
   const { data } = await supabase.storage.from("photos").createSignedUrls(paths, TTL);
-  const byPath = new Map((data || []).map(d => [d.path, d.signedUrl]));
+  const byPath = new Map((data || []).filter(d => d.signedUrl).map(d => [d.path, d.signedUrl]));
   for (const p of paths) {
-    const url = byPath.get(p) || null;
-    if (url) cache.set(p, { url, exp: Date.now() + (TTL - 120) * 1000 });
+    const fresh = byPath.get(p) || null;
+    const url = fresh || known[p] || null;
+    if (fresh) { cache.set(p, { url: fresh, exp: Date.now() + (TTL - 120) * 1000 }); remember(p, fresh); }
     batch.get(p)!.forEach(cb => cb(url));
   }
 }

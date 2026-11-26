@@ -292,3 +292,9 @@ h3.day{font-size:17px;margin:18px 0 8px}
 .mosaic button{border:0;padding:0;background:var(--surface2);aspect-ratio:1;display:block}
 .mosaic img,.mosaic .ph-wait{width:100%;height:100%;object-fit:cover;display:block}
 .recap-entry .entry{border-bottom:0}
+
+/* Chargement : verre qui se remplit en boucle */
+.loading>div,.boot>div{display:flex;flex-direction:column;align-items:center;gap:10px}
+.loading-glass .rise{animation:fill 1.6s cubic-bezier(.4,0,.2,1) infinite}
+@keyframes fill{0%{transform:translateY(var(--rise))}60%,100%{transform:none}}
+@media (prefers-reduced-motion:reduce){.loading-glass .rise{animation:none}}

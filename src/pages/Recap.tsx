@@ -14,6 +14,7 @@ import { Entry } from "../components/Entry";
 import { Avatar } from "../components/Avatar";
 import { Podium } from "../components/GroupViews";
 import { Reveal } from "../components/Reveal";
+import { Loading } from "../components/Loading";
 
 const hasPhoto = (t: Tasting) => !!(t.photo_path || t._pending?.photo);
 const dayKey = (iso: string) => {
@@ -64,7 +65,7 @@ export function Recap() {
     return { beers, P, days, bestPhoto, awards: awardsOf(cat, T, P, true) };
   }, [T]);
 
-  if (!groupsLoaded || tastings === null) return <div className="loading">Ouverture du récap…</div>;
+  if (!groupsLoaded || tastings === null) return <Loading text="Ouverture du récap…" />;
   if (!g) return <div className="empty"><b>Groupe introuvable</b><p>Tu n’en fais pas (ou plus) partie.</p></div>;
   if (!recapReady(g)) return (
     <div className="empty"><Glass score={50} color="#E6AE35" h={90} /><b>Le récap n’est pas encore prêt</b>

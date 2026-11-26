@@ -4,6 +4,7 @@ import { groupStatus, groupSubtitle, recapReady, type GroupStatus } from "../lib
 import { usePhotoUrl } from "../lib/photos";
 import type { Group } from "../lib/types";
 import { EmptyState } from "../components/EmptyState";
+import { Loading } from "../components/Loading";
 
 const SECTIONS: [GroupStatus, string][] = [["current", "En cours"], ["upcoming", "À venir"], ["past", "Passés"]];
 
@@ -28,7 +29,7 @@ export function GroupCard({ g }: { g: Group }) {
 
 export function Groups() {
   const { groups, groupsLoaded } = useStore();
-  if (!groupsLoaded) return <div className="loading">Chargement des groupes…</div>;
+  if (!groupsLoaded) return <Loading text="Chargement des groupes…" />;
   return (
     <>
       <h2>Groupes</h2>

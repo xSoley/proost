@@ -14,6 +14,8 @@ type Store = {
   groups: Group[];
   groupsLoaded: boolean;
   pendingCount: number;
+  /** Le dernier envoi a échoué faute de réseau (même si le téléphone se croit connecté) */
+  unreachable: boolean;
   save: (row: Tasting, photo: { action: PhotoAction; photo?: Blob; thumb?: Blob }) => Promise<void>;
   remove: (t: Tasting) => Promise<void>;
   reloadGroups: () => Promise<void>;
@@ -31,8 +33,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [rows, setRows] = useState<Tasting[]>(() => readCache(uid));
   const [loaded, setLoaded] = useState(() => readCache(uid).length > 0);
   const [pending, setPending] = useState<OutboxEntry[]>([]);
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [groupsLoaded, setGroupsLoaded] = useState(false);
+  const [unreachable, setUnreachable] = useState(false);
+  const [groups, setGroups] = useState<Group[]>(() => { try { return JSON.parse(localStorage.getItem(`proost-groups-${uid}`) || "[]"); } catch { return []; } });
+  const [groupsLoaded, setGroupsLoaded] = useState(() => { try { return localStorage.getItem(`proost-groups-${uid}`) != null; } catch { return false; } });
   const urls = useRef(new Map<string, { at: number; photo?: string; thumb?: string }>());
 
   const setServerRows = useCallback((fn: (r: Tasting[]) => Tasting[]) => {
@@ -45,6 +48,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const runFlush = useCallback(async () => {
     const res = await flush(uid);
+    setUnreachable(res.offline);
     if (res.done.length) {
       setServerRows(prev => {
         let next = prev;
@@ -68,7 +72,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const reloadGroups = useCallback(async () => {
     const { data } = await supabase.from("groups").select("*, group_members(count)").order("start_date", { ascending: false, nullsFirst: false });
-    if (data) { setGroups(data as Group[]); setGroupsLoaded(true); }
+    if (data) {
+      setGroups(data as Group[]); setGroupsLoaded(true);
+      try { localStorage.setItem(`proost-groups-${uid}`, JSON.stringify(data)); } catch { /* */ }
+    } else setGroupsLoaded(true);
   }, []);
 
   useEffect(() => {
@@ -84,7 +91,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // Nouvel essai régulier tant que des fiches attendent
   useEffect(() => {
     if (!pending.length) return;
-    const t = window.setInterval(() => { if (navigator.onLine) runFlush(); }, 30000);
+    const t = window.setInterval(() => { if (navigator.onLine) runFlush(); }, 10000);
     return () => clearInterval(t);
   }, [pending.length, runFlush]);
 
@@ -133,8 +140,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [uid, refreshPending, runFlush]);
 
   const pendingCount = pending.length;
-  const value = useMemo(() => ({ loaded, mine, groups, groupsLoaded, pendingCount, save, remove, reloadGroups }),
-    [loaded, mine, groups, groupsLoaded, pendingCount, save, remove, reloadGroups]);
+  const value = useMemo(() => ({ loaded, mine, groups, groupsLoaded, pendingCount, unreachable, save, remove, reloadGroups }),
+    [loaded, mine, groups, groupsLoaded, pendingCount, unreachable, save, remove, reloadGroups]);
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>;
 }
 

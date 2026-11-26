@@ -24,15 +24,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loadProfile = useCallback(async (uid: string | undefined) => {
     if (!uid) { setProfile(null); return; }
-    const { data } = await supabase.from("profiles").select("*").eq("id", uid).maybeSingle();
-    setProfile(data as Profile | null);
+    const key = `proost-profile-${uid}`;
+    // Profil en cache d'abord (ouverture hors ligne), puis mise à jour depuis le serveur
+    try { const cached = localStorage.getItem(key); if (cached) setProfile(JSON.parse(cached)); } catch { /* */ }
+    const { data, error } = await supabase.from("profiles").select("*").eq("id", uid).maybeSingle();
+    if (data) { setProfile(data as Profile); try { localStorage.setItem(key, JSON.stringify(data)); } catch { /* */ } }
+    else if (!error) setProfile(null);
   }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data }) => {
+    supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
-      await loadProfile(data.session?.user.id);
       setLoading(false);
+      // sans attendre le réseau : hors ligne, l'appli s'ouvre avec le profil en cache
+      loadProfile(data.session?.user.id);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s);

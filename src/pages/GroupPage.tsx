@@ -8,6 +8,7 @@ import { usePhotoUrl } from "../lib/photos";
 import { useToast } from "../components/Toast";
 import { Avatar } from "../components/Avatar";
 import { Bars, Feed, Ranking, Team } from "../components/GroupViews";
+import { Loading } from "../components/Loading";
 
 type Tab = "ranking" | "feed" | "bars" | "team";
 const TABS: [Tab, string][] = [["ranking", "Classement"], ["feed", "Carnet"], ["bars", "Bars"], ["team", "Équipe"]];
@@ -36,7 +37,7 @@ export function GroupPage() {
   useEffect(() => { setCode(g?.invite_code || null); }, [g?.invite_code]);
   const choose = (t: Tab) => { setTab(t); try { sessionStorage.setItem(`tab-${id}`, t); } catch { /* */ } };
 
-  if (!groupsLoaded) return <div className="loading">Chargement du groupe…</div>;
+  if (!groupsLoaded) return <Loading text="Chargement du groupe…" />;
   if (!g) return <div className="empty"><b>Groupe introuvable</b><p>Tu n’en fais pas (ou plus) partie.</p>
     <Link className="btn" to="/groups">Mes groupes</Link></div>;
 
@@ -110,7 +111,7 @@ export function GroupPage() {
       <div className="seg" role="tablist" aria-label="Vues du groupe">{TABS.map(([k, l]) =>
         <button key={k} role="tab" aria-pressed={tab === k} aria-selected={tab === k} onClick={() => choose(k)}>{l}</button>)}</div>
 
-      {tastings === null ? <div className="loading">Ouverture du carnet…</div>
+      {tastings === null ? <Loading text="Ouverture du carnet…" />
         : tab === "ranking" ? <Ranking T={T} />
           : tab === "feed" ? <Feed T={T} uid={uid} />
             : tab === "bars" ? <Bars T={T} />

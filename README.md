@@ -56,3 +56,15 @@ Crée deux comptes jetables (Alice et Bob), vérifie qui voit, modifie et lit qu
 node --env-file=.env.local scripts/test-groups.mjs
 ```
 Invitation, temps réel, régénération du code, retrait d'un membre, départ, suppression d'un groupe (trois comptes jetables).
+
+```bash
+npm run build && npx vite preview --port 4173   # dans un autre terminal
+node --env-file=.env.local scripts/test-devices.mjs
+```
+Sur iPhone et Android émulés (Chrome) : inscription, installabilité PWA, fiche avec photo, ouverture hors ligne, fiche hors ligne puis envoi au retour du réseau. Captures dans `test-captures/`.
+
+## Installer l'appli sur son téléphone
+- **iPhone (Safari)** : ouvrir le site → bouton Partager → « Sur l'écran d'accueil ».
+- **Android (Chrome)** : ouvrir le site → menu ⋮ → « Installer l'application » (ou la bannière proposée).
+
+Une fois installée, Proost s'ouvre en plein écran, même sans réseau : les fiches notées hors ligne partent toutes seules au retour du réseau.

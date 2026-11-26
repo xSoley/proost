@@ -12,6 +12,7 @@ import { Entry } from "../components/Entry";
 import { CritBars } from "../components/CritBars";
 import { ScoreTrend } from "../components/ScoreTrend";
 import { useToast } from "../components/Toast";
+import { Loading } from "../components/Loading";
 
 export function BeerPage() {
   const { key = "" } = useParams();
@@ -38,7 +39,7 @@ export function BeerPage() {
     toast("Fiche supprimée");
   }
 
-  if (!loaded) return <div className="loading">Ouverture de la cave…</div>;
+  if (!loaded) return <Loading text="Ouverture de la cave…" />;
 
   const name = agg?.name || friends?.[0]?.item_name || "";
   const friendsAvg = friends?.length ? friends.reduce((a, t) => a + t.score, 0) / friends.length : null;
@@ -77,7 +78,7 @@ export function BeerPage() {
       )}
 
       <h2 style={{ fontSize: 20, margin: "26px 0 4px" }}>Mes amis</h2>
-      {friends === null ? <div className="loading" style={{ padding: "20px 0" }}>Chargement…</div>
+      {friends === null ? <Loading text="Chargement…" />
         : friends.length ? (
           <>
             <p className="sub">{friends.length} avis, {fmt(friendsAvg!)}/100 en moyenne</p>

@@ -6,11 +6,12 @@ import { beersOf, colorOf, litersOf, spentOf, strongestOf, topCount } from "../l
 import { fmt, num } from "../lib/utils";
 import { Glass } from "../components/Glass";
 import { EmptyState } from "../components/EmptyState";
+import { Loading } from "../components/Loading";
 
 export function Stats() {
   const { mine: T, loaded } = useStore();
   const beers = useMemo(() => beersOf(cat, T), [T]);
-  if (!loaded) return <div className="loading">Ouverture de la cave…</div>;
+  if (!loaded) return <Loading text="Ouverture de la cave…" />;
 
   let html = <><h2>Mes stats</h2><p className="sub">Tes chiffres de dégustateur, depuis le début</p></>;
   if (!T.length) return <>{html}<EmptyState title="Pas encore de chiffres" text="Ils arrivent avec la première fiche." /></>;

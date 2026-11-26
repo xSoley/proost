@@ -4,6 +4,7 @@ import { supabase } from "../lib/supabase";
 import { useAuth } from "../auth/AuthProvider";
 import { groupSubtitle } from "../lib/groups";
 import { Glass } from "../components/Glass";
+import { Loading } from "../components/Loading";
 
 type Preview = { id: string; name: string; emoji: string; city: string | null; start_date: string | null; end_date: string | null; members: number };
 
@@ -37,7 +38,7 @@ export function Join() {
         <div className="hero"><Glass score={85} color="#E6AE35" h={110} /></div>
         <h1>Proost</h1>
       </div>
-      {preview === undefined || (session && !err) ? <div className="loading">Un instant…</div>
+      {preview === undefined || (session && !err) ? <Loading text="Un instant…" />
         : preview === null || err ? (
           <div className="sec"><h3>Lien expiré</h3><p className="hint">{err || "Ce lien d’invitation n’est plus valable. Demande un nouveau lien à l’organisateur."}</p>
             <Link className="btn wide" style={{ display: "block", textAlign: "center" }} to="/">Ouvrir Proost</Link></div>

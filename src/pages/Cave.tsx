@@ -7,6 +7,7 @@ import { fmt, fmtDate, norm } from "../lib/utils";
 import { Glass } from "../components/Glass";
 import { Photo } from "../components/Photo";
 import { EmptyState } from "../components/EmptyState";
+import { Loading } from "../components/Loading";
 
 type Sort = "note" | "recent" | "value" | "pop";
 const LABELS: Record<Sort, string> = { note: "Meilleure note", recent: "Plus récentes", value: "Qualité/prix", pop: "Les plus bues" };
@@ -66,7 +67,7 @@ export function Cave() {
     .filter(b => !again || b.again > 0)
     .sort(SORTERS[sort]), [beers, style, color, again, sort]);
 
-  if (!loaded) return <div className="loading">Ouverture de la cave…</div>;
+  if (!loaded) return <Loading text="Ouverture de la cave…" />;
 
   return (
     <>

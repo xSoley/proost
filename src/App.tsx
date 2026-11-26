@@ -17,11 +17,12 @@ import { GroupForm } from "./pages/GroupForm";
 import { GroupPage } from "./pages/GroupPage";
 import { Join } from "./pages/Join";
 import { Recap } from "./pages/Recap";
+import { Loading } from "./components/Loading";
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { session, loading } = useAuth();
   const loc = useLocation();
-  if (loading) return <div className="boot">Ouverture de la cave…</div>;
+  if (loading) return <Loading text="Ouverture de la cave…" full />;
   if (!session) {
     const next = loc.pathname + loc.search;
     return <Navigate to={next === "/" ? "/login" : `/login?next=${encodeURIComponent(next)}`} replace />;
@@ -32,7 +33,7 @@ function RequireAuth({ children }: { children: ReactNode }) {
 function GuestOnly({ children }: { children: ReactNode }) {
   const { session, loading } = useAuth();
   const [params] = useSearchParams();
-  if (loading) return <div className="boot">Ouverture de la cave…</div>;
+  if (loading) return <Loading text="Ouverture de la cave…" full />;
   if (session) { const n = params.get("next"); return <Navigate to={n && n.startsWith("/") ? n : "/"} replace />; }
   return <>{children}</>;
 }
