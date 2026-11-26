@@ -45,3 +45,9 @@ npm run dev            # http://localhost:5173 (et l'IP locale pour tester sur t
 - `src/styles/global.css` : CSS du prototype, repris tel quel, + quelques ajouts.
 - `src/categories/beer.ts` : critères de notation, pondérations et référentiels de la bière (ajouter `wine.ts` plus tard).
 - `supabase/migrations/` : schéma SQL versionné (tables, RLS, stockage, RPC).
+
+## Tester les règles de sécurité
+```bash
+node --env-file=.env.local scripts/test-rls.mjs
+```
+Crée deux comptes jetables (Alice et Bob), vérifie qui voit, modifie et lit quoi (fiches, groupes, photos), puis les supprime.

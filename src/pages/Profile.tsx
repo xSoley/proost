@@ -4,6 +4,8 @@ import { supabase } from "../lib/supabase";
 import { useAuth } from "../auth/AuthProvider";
 import { useToast } from "../components/Toast";
 import { authError } from "./AuthPage";
+import { clearLocal } from "../lib/outbox";
+import { useStore } from "../lib/store";
 
 /** Supprime tous les fichiers du dossier de l'utilisateur dans le bucket photos */
 async function removeAllPhotos(uid: string) {
@@ -28,6 +30,7 @@ export function Profile() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [confirmDel, setConfirmDel] = useState(false);
+  const { pendingCount } = useStore();
 
   useEffect(() => { setName(profile?.display_name || ""); }, [profile?.display_name]);
 
@@ -53,6 +56,8 @@ export function Profile() {
   }
 
   async function logout() {
+    if (pendingCount && !confirm(`${pendingCount} fiche${pendingCount > 1 ? "s" : ""} pas encore envoyée${pendingCount > 1 ? "s seront perdues" : " sera perdue"}. Se déconnecter quand même ?`)) return;
+    await clearLocal(uid);
     await supabase.auth.signOut();
     navigate("/login", { replace: true });
   }
@@ -63,6 +68,7 @@ export function Profile() {
       await removeAllPhotos(uid);
       const { error } = await supabase.rpc("delete_account");
       if (error) throw error;
+      await clearLocal(uid);
       await supabase.auth.signOut();
       navigate("/login", { replace: true });
     } catch {

@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from "react";
-import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthProvider, takeNext, useAuth } from "./auth/AuthProvider";
 import { ToastProvider } from "./components/Toast";
 import { Layout } from "./components/Layout";
@@ -8,6 +8,11 @@ import { ResetPassword } from "./pages/ResetPassword";
 import { Profile } from "./pages/Profile";
 import { Placeholder } from "./pages/Placeholder";
 import { supabaseConfigured } from "./lib/supabase";
+import { StoreProvider } from "./lib/store";
+import { Cave } from "./pages/Cave";
+import { BeerPage } from "./pages/BeerPage";
+import { Stats } from "./pages/Stats";
+import { TastingForm } from "./pages/TastingForm";
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { session, loading } = useAuth();
@@ -59,12 +64,16 @@ export default function App() {
             <Route path="/signup" element={<GuestOnly><AuthPage mode="signup" /></GuestOnly>} />
             <Route path="/forgot" element={<GuestOnly><AuthPage mode="forgot" /></GuestOnly>} />
             <Route path="/reset-password" element={<ResetPassword />} />
-            <Route element={<RequireAuth><Layout /></RequireAuth>}>
-              <Route index element={<Placeholder title="Ma cave" text="Ta cave arrive à l’étape 2 : fiches avec photo, recherche, page de chaque bière." />} />
-              <Route path="stats" element={<Placeholder title="Mes stats" text="Tes chiffres de dégustateur arrivent à l’étape 2." />} />
-              <Route path="new" element={<Placeholder title="Nouvelle dégustation" text="La fiche de dégustation avec photo arrive à l’étape 2." />} />
-              <Route path="groups" element={<Placeholder title="Groupes" text="Les groupes entre amis arrivent à l’étape 3." />} />
-              <Route path="profile" element={<Profile />} />
+            <Route element={<RequireAuth><StoreProvider><Outlet /></StoreProvider></RequireAuth>}>
+              <Route element={<Layout />}>
+                <Route index element={<Cave />} />
+                <Route path="beer/:key" element={<BeerPage />} />
+                <Route path="stats" element={<Stats />} />
+                <Route path="groups" element={<Placeholder title="Groupes" text="Les groupes entre amis arrivent à l’étape 3." />} />
+                <Route path="profile" element={<Profile />} />
+              </Route>
+              <Route path="new" element={<TastingForm />} />
+              <Route path="edit/:id" element={<TastingForm key="edit" />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
