@@ -63,6 +63,11 @@ node --env-file=.env.local scripts/test-devices.mjs
 ```
 Sur iPhone et Android émulés (Chrome) : inscription, installabilité PWA, fiche avec photo, ouverture hors ligne, fiche hors ligne puis envoi au retour du réseau. Captures dans `test-captures/`.
 
+```bash
+node --env-file=.env.local scripts/test-offline-closed.mjs   # même prérequis (vite preview)
+```
+Cas limite : une fiche notée hors ligne dans un groupe clôturé avant son envoi est gardée en Perso, et l'auteur est prévenu.
+
 ## Installer l'appli sur son téléphone
 - **iPhone (Safari)** : ouvrir le site → bouton Partager → « Sur l'écran d'accueil ».
 - **Android (Chrome)** : ouvrir le site → menu ⋮ → « Installer l'application » (ou la bannière proposée).
