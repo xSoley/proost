@@ -47,7 +47,7 @@ function AuthRedirects() {
 export default function App() {
   if (!supabaseConfigured) {
     return <div className="auth"><div className="brand"><h1>Proost</h1></div>
-      <div className="banner">Configuration manquante : renseigne VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY (fichier .env en local, variables d’environnement sur Vercel).</div></div>;
+      <div className="banner">Configuration manquante : renseigne VITE_SUPABASE_URL et VITE_SUPABASE_PUBLISHABLE_KEY (fichier .env.local en local, variables d’environnement sur Vercel).</div></div>;
   }
   return (
     <BrowserRouter>
