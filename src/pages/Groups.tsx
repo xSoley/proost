@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useStore } from "../lib/store";
-import { groupStatus, groupSubtitle, type GroupStatus } from "../lib/groups";
+import { groupStatus, groupSubtitle, recapReady, type GroupStatus } from "../lib/groups";
 import { usePhotoUrl } from "../lib/photos";
 import type { Group } from "../lib/types";
 import { EmptyState } from "../components/EmptyState";
@@ -18,6 +18,7 @@ export function GroupCard({ g }: { g: Group }) {
         <span className="body">
           <span className="title">{g.name}</span>
           <span className="meta" style={{ display: "block" }}>{groupSubtitle(g) || "Sans dates"}</span>
+          {recapReady(g) && <span className="meta" style={{ display: "block", color: "var(--hop)", fontWeight: 600 }}>🏆 Récap disponible</span>}
         </span>
         {n != null && <span className="score"><b>{n}</b><small>membre{n > 1 ? "s" : ""}</small></span>}
       </div>

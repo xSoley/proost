@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../auth/AuthProvider";
 import { useStore } from "../lib/store";
-import { groupSubtitle, inviteUrl, useGroupTastings, type Member } from "../lib/groups";
+import { groupSubtitle, inviteUrl, recapReady, useGroupTastings, type Member } from "../lib/groups";
 import { usePhotoUrl } from "../lib/photos";
 import { useToast } from "../components/Toast";
 import { Avatar } from "../components/Avatar";
@@ -63,6 +63,14 @@ export function GroupPage() {
     if (error) { toast("Impossible de retirer ce membre."); return; }
     loadMembers(); reloadGroups();
   }
+  async function setClosed(closed: boolean) {
+    if (closed && !confirm("Clôturer le groupe ? Le récap devient disponible pour tout le monde. Tu pourras le rouvrir.")) return;
+    const { error } = await supabase.from("groups").update({ closed_at: closed ? new Date().toISOString() : null }).eq("id", id);
+    if (error) { toast("Impossible de modifier le groupe."); return; }
+    await reloadGroups();
+    if (closed) navigate(`/groups/${id}/recap`);
+    else toast("Groupe rouvert");
+  }
   async function leave() {
     if (!confirm(`Quitter « ${g!.name} » ? Tu ne verras plus les fiches du groupe. Les tiennes restent visibles par le groupe.`)) return;
     const { error } = await supabase.from("group_members").delete().eq("group_id", id).eq("user_id", uid);
@@ -87,6 +95,17 @@ export function GroupPage() {
         <button className="ghost" onClick={() => setPanel(true)}>👥 {members.length || ""} membre{members.length > 1 ? "s" : ""} · Inviter</button>
         {owner && <Link className="ghost" to={`/groups/${id}/edit`}>Modifier</Link>}
       </div>
+
+      {recapReady(g) ? (
+        <Link className="card recap-teaser" to={`/groups/${id}/recap`}>
+          <span className="ic">🏆</span>
+          <span className="body"><b>Le récap est prêt</b><span>Podium, palmarès, coups de cœur et toutes les photos</span></span>
+          <span aria-hidden="true">→</span>
+        </Link>
+      ) : owner && (
+        <button className="ghost" style={{ width: "100%", padding: 11, marginBottom: 18 }} onClick={() => setClosed(true)}>🏁 Clôturer le week-end et voir le récap</button>
+      )}
+      {owner && g.closed_at && <button className="linkbtn" style={{ marginBottom: 18 }} onClick={() => setClosed(false)}>Rouvrir le groupe</button>}
 
       <div className="seg" role="tablist" aria-label="Vues du groupe">{TABS.map(([k, l]) =>
         <button key={k} role="tab" aria-pressed={tab === k} aria-selected={tab === k} onClick={() => choose(k)}>{l}</button>)}</div>

@@ -16,6 +16,7 @@ import { Groups } from "./pages/Groups";
 import { GroupForm } from "./pages/GroupForm";
 import { GroupPage } from "./pages/GroupPage";
 import { Join } from "./pages/Join";
+import { Recap } from "./pages/Recap";
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { session, loading } = useAuth();
@@ -77,6 +78,7 @@ export default function App() {
                 <Route path="groups/new" element={<GroupForm />} />
                 <Route path="groups/:id" element={<GroupPage />} />
                 <Route path="groups/:id/edit" element={<GroupForm />} />
+                <Route path="groups/:id/recap" element={<Recap />} />
                 <Route path="profile" element={<Profile />} />
               </Route>
               <Route path="new" element={<TastingForm />} />

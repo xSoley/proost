@@ -254,3 +254,41 @@ a.btn{text-decoration:none}
 .member .body{flex:1;min-width:0}
 .member small{color:var(--muted);font-weight:500}
 .modal-in{max-height:calc(100dvh - 32px);overflow-y:auto}
+
+/* Verres qui se remplissent à l'apparition */
+.rise{transition:transform 1.4s cubic-bezier(.2,.8,.2,1)}
+.reveal:not(.in) .rise{transform:translateY(var(--rise))}
+.reveal .pod:nth-child(1) .rise{transition-delay:.25s}
+.reveal .pod:nth-child(3) .rise{transition-delay:.5s}
+@media (prefers-reduced-motion:reduce){.rise{transition:none}.reveal:not(.in) .rise{transform:none}}
+
+/* Récap */
+.recap-teaser{display:flex;align-items:center;gap:12px;padding:14px;margin-bottom:18px;text-decoration:none;color:inherit;border-color:var(--gold)}
+.recap-teaser .ic{font-size:28px}
+.recap-teaser .body{flex:1;min-width:0}
+.recap-teaser b{display:block;font-size:17px}
+.recap-teaser span span{color:var(--muted);font-size:14px}
+.recap-cover{position:relative;border-radius:24px;overflow:hidden;background:var(--hop);color:#fff;min-height:300px;display:flex;align-items:flex-end;margin-bottom:28px;box-shadow:var(--shadow)}
+.recap-cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.recap-cover::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,16,10,0) 35%,rgba(20,16,10,.78))}
+.recap-cover-in{position:relative;z-index:1;padding:22px}
+.recap-cover h1{font-size:clamp(40px,11vw,60px);line-height:.92;font-weight:800;letter-spacing:-.04em;margin:6px 0 8px;font-variation-settings:"opsz" 96;overflow-wrap:anywhere}
+.recap-cover p{margin:0;font-size:16px;opacity:.9}
+.recap-emoji{font-size:40px;line-height:1}
+.recap-sec{margin-bottom:30px}
+.recap-sec>h2{margin-bottom:12px}
+.kpi.wide{grid-column:1/-1}
+.kpi b small{font-size:16px;color:var(--muted);font-weight:700;margin-left:2px}
+.faves{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.fave{display:flex;flex-direction:column;align-items:stretch;text-align:left;padding:0 0 12px;gap:4px}
+.fave-photo{display:block;width:100%;aspect-ratio:1;object-fit:cover;background:var(--surface2);margin-bottom:6px}
+.fave-glass{display:grid;place-items:center}
+.fave-who{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);font-weight:600;padding:0 12px}
+.fave-beer{font-weight:700;font-size:16px;line-height:1.2;padding:0 12px;overflow-wrap:anywhere}
+.fave-score{font-weight:800;font-size:22px;letter-spacing:-.02em;padding:0 12px}
+.fave-score small{font-size:12px;color:var(--muted);font-weight:600}
+h3.day{font-size:17px;margin:18px 0 8px}
+.mosaic{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;border-radius:14px;overflow:hidden}
+.mosaic button{border:0;padding:0;background:var(--surface2);aspect-ratio:1;display:block}
+.mosaic img,.mosaic .ph-wait{width:100%;height:100%;object-fit:cover;display:block}
+.recap-entry .entry{border-bottom:0}

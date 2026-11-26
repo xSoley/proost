@@ -55,11 +55,21 @@ try {
   check("Alice régénère le code", typeof newCode === "string" && newCode !== g.invite_code);
   check("L'ancien code ne marche plus", ((await client().rpc("invite_preview", { code: g.invite_code })).data || []).length === 0);
 
+  // Couverture et clôture
+  const JPEG = Buffer.from("/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=", "base64");
+  const coverPath = `${A.id}/covers/${gid}.jpg`;
+  await A.c.storage.from("photos").upload(coverPath, JPEG, { contentType: "image/jpeg" });
+  await A.c.from("groups").update({ cover_path: coverPath }).eq("id", gid);
+  check("Bob voit la couverture du groupe", !(await B.c.storage.from("photos").createSignedUrl(coverPath, 60)).error);
+  check("Bob ne peut pas clôturer le groupe", ((await B.c.from("groups").update({ closed_at: new Date().toISOString() }).eq("id", gid).select()).data || []).length === 0);
+  check("Alice clôture le groupe", ((await A.c.from("groups").update({ closed_at: new Date().toISOString() }).eq("id", gid).select()).data || []).length === 1);
+
   // Retrait et départ
   check("Bob ne peut pas retirer Chloé", ((await B.c.from("group_members").delete().eq("group_id", gid).eq("user_id", C.id).select()).data || []).length === 0);
   check("Alice ne peut pas quitter son propre groupe", ((await A.c.from("group_members").delete().eq("group_id", gid).eq("user_id", A.id).select()).data || []).length === 0);
   check("Alice retire Chloé", ((await A.c.from("group_members").delete().eq("group_id", gid).eq("user_id", C.id).select()).data || []).length === 1);
   check("Chloé ne voit plus les fiches du groupe", ((await C.c.from("tastings").select("id").eq("group_id", gid)).data || []).length === 0);
+  check("Chloé ne voit plus la couverture", !!(await C.c.storage.from("photos").createSignedUrl(coverPath, 60)).error);
   check("Chloé ne peut plus noter dans le groupe", !!(await C.c.from("tastings").insert(row(C.id, gid))).error);
   const bt = row(B.id, gid);
   await B.c.from("tastings").insert(bt);
@@ -67,6 +77,7 @@ try {
   check("Bob voit toujours sa propre fiche", ((await B.c.from("tastings").select("id").eq("id", bt.id)).data || []).length === 1);
 
   // Suppression du groupe : les fiches repassent en Perso
+  await A.c.storage.from("photos").remove([coverPath]);
   await A.c.from("groups").delete().eq("id", gid);
   const { data: after } = await A.c.from("tastings").select("group_id").eq("id", t.id).single();
   check("Groupe supprimé : la fiche d'Alice repasse en Perso", after?.group_id === null);

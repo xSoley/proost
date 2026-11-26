@@ -22,12 +22,12 @@ const SORTERS: Record<Sort, (a: BeerAgg, b: BeerAgg) => number> = {
 const LABEL: Record<Sort, string> = { note: "Note du groupe", value: "Rapport qualité/prix", pop: "Les plus goûtées", again: "Celles qu’on reprendrait" };
 
 /** Podium (2e, 1re, 3e) avec verres qui se remplissent */
-export function Podium({ list, val, onOpen }: { list: BeerAgg[]; val: (b: BeerAgg) => string; onOpen?: (k: string) => void }) {
+export function Podium({ list, val, onOpen, rise }: { list: BeerAgg[]; val: (b: BeerAgg) => string; onOpen?: (k: string) => void; rise?: boolean }) {
   if (list.length < 3) return null;
   const [a, b, c] = list;
   const pod = (x: BeerAgg, cls: string, r: string, h: number) => (
     <button className={`pod ${cls}`} onClick={() => onOpen?.(x.key)}>
-      <Glass score={x.avg} color={colorOf(cat, x.color)} h={h} />
+      <Glass score={x.avg} color={colorOf(cat, x.color)} h={h} rise={rise} />
       <div className="nm">{x.name}</div>
       <div className="plinth"><div className="rank">{r}</div><div className="sc">{val(x)}</div></div>
     </button>
